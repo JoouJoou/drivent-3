@@ -6,11 +6,17 @@ import hotelsRepository from "@/repositories/hotels-repository";
 async function searchAllHotels(userId: number) {
   const enrollment = await enrollmentRepository.findWithAddressByUserId(userId);
   if (!enrollment) {
+    console.log(userId);
     throw notFoundError();
   }
-  const ticket = await ticketRepository.findPaidTicketByEnrollmentId(enrollment.id);
-  if (ticket && ticket.TicketType.includesHotel !== true) {
-    throw requestError(401, "It must be at least one paid ticket and should includes hotel");
+  const ticket = await ticketRepository.findPaidTicketByEnrollmentId(
+    enrollment.id
+  );
+  if ((ticket && ticket.TicketType.includesHotel !== true) || !ticket) {
+    throw requestError(
+      400,
+      "It must be at least one paid ticket and should includes hotel"
+    );
   }
 
   return await hotelsRepository.findHotels();

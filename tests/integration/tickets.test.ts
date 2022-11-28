@@ -5,7 +5,12 @@ import { TicketStatus } from "@prisma/client";
 import httpStatus from "http-status";
 import * as jwt from "jsonwebtoken";
 import supertest from "supertest";
-import { createEnrollmentWithAddress, createUser, createTicketType, createTicket } from "../factories";
+import {
+  createEnrollmentWithAddress,
+  createUser,
+  createTicketType,
+  createTicket,
+} from "../factories";
 import { cleanDb, generateValidToken } from "../helpers";
 
 beforeAll(async () => {
@@ -28,16 +33,23 @@ describe("GET /tickets/types", () => {
   it("should respond with status 401 if given token is not valid", async () => {
     const token = faker.lorem.word();
 
-    const response = await server.get("/tickets/types").set("Authorization", `Bearer ${token}`);
+    const response = await server
+      .get("/tickets/types")
+      .set("Authorization", `Bearer ${token}`);
 
     expect(response.status).toBe(httpStatus.UNAUTHORIZED);
   });
 
   it("should respond with status 401 if there is no session for given token", async () => {
     const userWithoutSession = await createUser();
-    const token = jwt.sign({ userId: userWithoutSession.id }, process.env.JWT_SECRET);
+    const token = jwt.sign(
+      { userId: userWithoutSession.id },
+      process.env.JWT_SECRET
+    );
 
-    const response = await server.get("/tickets/types").set("Authorization", `Bearer ${token}`);
+    const response = await server
+      .get("/tickets/types")
+      .set("Authorization", `Bearer ${token}`);
 
     expect(response.status).toBe(httpStatus.UNAUTHORIZED);
   });
@@ -46,7 +58,9 @@ describe("GET /tickets/types", () => {
     it("should respond with empty array when there are no ticket types created", async () => {
       const token = await generateValidToken();
 
-      const response = await server.get("/tickets/types").set("Authorization", `Bearer ${token}`);
+      const response = await server
+        .get("/tickets/types")
+        .set("Authorization", `Bearer ${token}`);
 
       expect(response.body).toEqual([]);
     });
@@ -54,9 +68,11 @@ describe("GET /tickets/types", () => {
     it("should respond with status 200 and with existing TicketTypes data", async () => {
       const token = await generateValidToken();
 
-      const ticketType = await createTicketType();
+      const ticketType = await createTicketType(false, true);
 
-      const response = await server.get("/tickets/types").set("Authorization", `Bearer ${token}`);
+      const response = await server
+        .get("/tickets/types")
+        .set("Authorization", `Bearer ${token}`);
 
       expect(response.status).toBe(httpStatus.OK);
       expect(response.body).toEqual([
@@ -84,16 +100,23 @@ describe("GET /tickets", () => {
   it("should respond with status 401 if given token is not valid", async () => {
     const token = faker.lorem.word();
 
-    const response = await server.get("/tickets").set("Authorization", `Bearer ${token}`);
+    const response = await server
+      .get("/tickets")
+      .set("Authorization", `Bearer ${token}`);
 
     expect(response.status).toBe(httpStatus.UNAUTHORIZED);
   });
 
   it("should respond with status 401 if there is no session for given token", async () => {
     const userWithoutSession = await createUser();
-    const token = jwt.sign({ userId: userWithoutSession.id }, process.env.JWT_SECRET);
+    const token = jwt.sign(
+      { userId: userWithoutSession.id },
+      process.env.JWT_SECRET
+    );
 
-    const response = await server.get("/tickets").set("Authorization", `Bearer ${token}`);
+    const response = await server
+      .get("/tickets")
+      .set("Authorization", `Bearer ${token}`);
 
     expect(response.status).toBe(httpStatus.UNAUTHORIZED);
   });
@@ -102,7 +125,9 @@ describe("GET /tickets", () => {
     it("should respond with status 404 when user doesnt have an enrollment yet", async () => {
       const token = await generateValidToken();
 
-      const response = await server.get("/tickets").set("Authorization", `Bearer ${token}`);
+      const response = await server
+        .get("/tickets")
+        .set("Authorization", `Bearer ${token}`);
 
       expect(response.status).toEqual(httpStatus.NOT_FOUND);
     });
@@ -112,7 +137,9 @@ describe("GET /tickets", () => {
       const token = await generateValidToken(user);
       await createEnrollmentWithAddress(user);
 
-      const response = await server.get("/tickets").set("Authorization", `Bearer ${token}`);
+      const response = await server
+        .get("/tickets")
+        .set("Authorization", `Bearer ${token}`);
 
       expect(response.status).toEqual(httpStatus.NOT_FOUND);
     });
@@ -121,10 +148,16 @@ describe("GET /tickets", () => {
       const user = await createUser();
       const token = await generateValidToken(user);
       const enrollment = await createEnrollmentWithAddress(user);
-      const ticketType = await createTicketType();
-      const ticket = await createTicket(enrollment.id, ticketType.id, TicketStatus.RESERVED);
+      const ticketType = await createTicketType(false, true);
+      const ticket = await createTicket(
+        enrollment.id,
+        ticketType.id,
+        TicketStatus.RESERVED
+      );
 
-      const response = await server.get("/tickets").set("Authorization", `Bearer ${token}`);
+      const response = await server
+        .get("/tickets")
+        .set("Authorization", `Bearer ${token}`);
 
       expect(response.status).toEqual(httpStatus.OK);
       expect(response.body).toEqual({
@@ -158,16 +191,23 @@ describe("POST /tickets", () => {
   it("should respond with status 401 if given token is not valid", async () => {
     const token = faker.lorem.word();
 
-    const response = await server.post("/tickets").set("Authorization", `Bearer ${token}`);
+    const response = await server
+      .post("/tickets")
+      .set("Authorization", `Bearer ${token}`);
 
     expect(response.status).toBe(httpStatus.UNAUTHORIZED);
   });
 
   it("should respond with status 401 if there is no session for given token", async () => {
     const userWithoutSession = await createUser();
-    const token = jwt.sign({ userId: userWithoutSession.id }, process.env.JWT_SECRET);
+    const token = jwt.sign(
+      { userId: userWithoutSession.id },
+      process.env.JWT_SECRET
+    );
 
-    const response = await server.post("/tickets").set("Authorization", `Bearer ${token}`);
+    const response = await server
+      .post("/tickets")
+      .set("Authorization", `Bearer ${token}`);
 
     expect(response.status).toBe(httpStatus.UNAUTHORIZED);
   });
@@ -177,9 +217,12 @@ describe("POST /tickets", () => {
       const user = await createUser();
       const token = await generateValidToken(user);
       await createEnrollmentWithAddress(user);
-      await createTicketType();
+      await createTicketType(false, true);
 
-      const response = await server.post("/tickets").set("Authorization", `Bearer ${token}`).send({});
+      const response = await server
+        .post("/tickets")
+        .set("Authorization", `Bearer ${token}`)
+        .send({});
 
       expect(response.status).toEqual(httpStatus.BAD_REQUEST);
     });
@@ -187,7 +230,7 @@ describe("POST /tickets", () => {
     it("should respond with status 404 when user doesnt have enrollment yet", async () => {
       const user = await createUser();
       const token = await generateValidToken(user);
-      const ticketType = await createTicketType();
+      const ticketType = await createTicketType(false, true);
 
       const response = await server
         .post("/tickets")
@@ -201,7 +244,7 @@ describe("POST /tickets", () => {
       const user = await createUser();
       const token = await generateValidToken(user);
       const enrollment = await createEnrollmentWithAddress(user);
-      const ticketType = await createTicketType();
+      const ticketType = await createTicketType(false, true);
 
       const response = await server
         .post("/tickets")
@@ -232,11 +275,14 @@ describe("POST /tickets", () => {
       const user = await createUser();
       const token = await generateValidToken(user);
       await createEnrollmentWithAddress(user);
-      const ticketType = await createTicketType();
+      const ticketType = await createTicketType(false, true);
 
       const beforeCount = await prisma.ticket.count();
 
-      await server.post("/tickets").set("Authorization", `Bearer ${token}`).send({ ticketTypeId: ticketType.id });
+      await server
+        .post("/tickets")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ ticketTypeId: ticketType.id });
 
       const afterCount = await prisma.ticket.count();
 
